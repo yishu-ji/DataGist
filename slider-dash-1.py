@@ -5,6 +5,9 @@ from dash import dcc, html
 from dash.dependencies import Input, Output
 import os
 
+
+server = app.server  # This is needed for Gunicorn
+
 # Load dataset
 file_path = "data.csv"
 df = pd.read_csv(file_path)
@@ -84,12 +87,17 @@ def update_plot(k):
     )
     return fig
 
-# Run the app
-import os
+# # Run the app
+# import os
+# if __name__ == '__main__':
+#     port = int(os.environ.get("PORT", 8050))  # Get port from Render, default to 8050
+#     app.run_server(host='0.0.0.0', port=port)
+
+
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 8050))  # Get port from Render, default to 8050
-    app.run_server(host='0.0.0.0', port=port)
-    
+    port = int(os.environ.get("PORT", 8050))  # Use Render's assigned port
+    app.run_server(host='0.0.0.0', port=port, debug=False)
+
 
 
 
