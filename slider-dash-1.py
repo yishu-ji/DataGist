@@ -156,7 +156,7 @@ def update_plot(k):
     fig.add_trace(go.Scatter(x=df['date'][100:-100], 
                              y=df['CMA'][100:-100], 
                              mode='lines',
-                             name=f'CMA (k={k})",
+                             name=f'CMA (k={k})',
                              line=dict(color='blue')))
 
     fig.update_layout(
