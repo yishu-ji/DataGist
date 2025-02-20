@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive CMA Plot</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        #chart-container { width: 80%; margin: auto; }
+        #slider-container { width: 80%; margin: 20px auto; } /* Increased width */
+        #window-slider { width: 100%; } /* Make slider wider */
+    </style>
+</head>
+<body>
+
+    <h1>Interactive Central Moving Average (CMA) Plot</h1>
+
+    <div id="slider-container">
+        <input type="range" id="window-slider" min="1" max="100" step="1" value="1">
+        <span id="window-value">Window Size: 1</span>
+    </div>
+
+    <div id="chart-container">
+        <div id="chart"></div>
+    </div>
+
+    <script>
+        // Load JSON Data
+        d3.json("data.json").then(function(data) {
+            // Convert date strings to Date objects
+            data.forEach(d => d.date = new Date(d.date));
+
+            // Get min and max y-values for better axis scaling
+            let minValue = d3.min(data, d => d.value) - 0.1; // Add margin
+            let maxValue = d3.max(data, d => d.value) + 0.1; // Add margin
+
+            // Function to compute Central Moving Average (CMA)
+            function computeCMA(windowSize) {
+                let smoothed = [];
+                let halfWindow = Math.floor(windowSize / 2);
+                for (let i = 0; i < data.length; i++) {
+                    let start = Math.max(0, i - halfWindow);
+                    let end = Math.min(data.length, i + halfWindow + 1);
+                    let subset = data.slice(start, end);
+                    let avg = d3.mean(subset, d => d.value);
+                    smoothed.push({ date: data[i].date, value: avg });
+                }
+                return smoothed;
+            }
+
+            // Function to update the chart
+            function updateChart(windowSize) {
+                let smoothedData = computeCMA(windowSize);
+
+                // let traceOriginal = {
+                //     x: data.map(d => d.date),
+                //     y: data.map(d => d.value),
+                //     mode: "lines",
+                //     name: "Original Data",
+                //     line: { color: "lightgray" }
+                // };
+
+                let traceCMA = {
+                    x: smoothedData.map(d => d.date),
+                    y: smoothedData.map(d => d.value),
+                    mode: "lines",
+                    name: `CMA (Window: ${windowSize})`,
+                    line: { color: "blue" }
+                };
+
+                Plotly.newPlot("chart", [traceOriginal, traceCMA], {
+                    title: "Central Moving Average",
+                    xaxis: { title: "Date", tickformat: "%Y-%m-%d" },
+                    yaxis: { title: "Value", range: [minValue, maxValue] }, // Set fixed y-axis range
+                    height: 600 // Increase chart height
+                });
+            }
+
+            // Initial plot
+            updateChart(1);
+
+            // Handle slider change
+            d3.select("#window-slider").on("input", function() {
+                let windowSize = +this.value;
+                d3.select("#window-value").text(`Window Size: ${windowSize}`);
+                updateChart(windowSize);
+            });
+        });
+    </script>
+
+</body>
+</html>
