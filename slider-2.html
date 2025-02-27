@@ -6,7 +6,10 @@
     <title>Interactive S-G Filter Plot</title>
     <script src="https://d3js.org/d3.v6.min.js"></script>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script> <!-- Added Numeric.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script>
+    <script>
+        console.log("Numeric.js loaded:", typeof numeric !== "undefined");
+    </script><!-- Added Numeric.js -->
     <style>
         body { font-family: Arial, sans-serif; text-align: center; }
         #chart-container { width: 90%; height: 600px; margin: auto; }
@@ -49,11 +52,12 @@
         function savitzkyGolayFilter(values, windowSize, polyOrder) {
             const halfWindow = Math.floor(windowSize / 2);
             let smoothed = new Array(values.length).fill(null);
-            
             for (let i = halfWindow; i < values.length - halfWindow; i++) {
                 let subset = values.slice(i - halfWindow, i + halfWindow + 1);
-                let coefficients = numeric.spline(polyOrder, subset);
-                smoothed[i] = coefficients.reduce((acc, c, index) => acc + c * Math.pow(i - halfWindow, index), 0);
+                let x = numeric.linspace(-halfWindow, halfWindow, subset.length);
+                let coeffs = numeric.polyFit(x, subset, polyOrder);
+        
+                smoothed[i] = numeric.polyval(coeffs, 0); // Estimate central point
             }
             return smoothed;
         }
