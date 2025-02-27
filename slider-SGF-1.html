@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -6,11 +6,7 @@
     <title>Interactive S-G Filter Plot</title>
     <script src="https://d3js.org/d3.v6.min.js"></script>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-
-    <!-- Ensure Numeric.js is loaded first -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script>
-    
-    <!-- Debugging Numeric.js loading -->
     <script>
         function loadNumericJS(callback) {
             if (typeof numeric === "undefined") {
@@ -105,6 +101,138 @@
             let traceSG = {
                 x: trimmedData.map(d => d.date),
                 y: smoothedValues.slice(Math.floor(windowSize / 2), smoothedValues.length - Math.floor(windowSize / 2)),
+                mode: "lines",
+                name: `S-G Filter (Window: ${windowSize})`,
+                line: { color: "blue" }
+            };
+
+            Plotly.newPlot("chart", [traceOriginal, traceSG], {
+                title: "Savitzky-Golay Filter Approximation",
+                xaxis: { title: "Date", tickformat: "%Y-%m-%d" },
+                yaxis: { title: "Value" },
+                width: 900,
+                height: 500,
+                responsive: true
+            });
+        }
+
+        d3.select("#window-slider").on("input", function() {
+            let windowSize = +this.value;
+            d3.select("#window-value").text(`Window Size: ${windowSize}`);
+            updateChart(windowSize);
+        });
+    </script>
+</body>
+</html>
+ -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive S-G Filter Plot</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+    <!-- Ensure Numeric.js is loaded first -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script>
+    
+    <!-- Debugging Numeric.js loading -->
+    <script>
+        function loadNumericJS(callback) {
+            if (typeof numeric === "undefined") {
+                let script = document.createElement("script");
+                script.src = "https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js";
+                script.onload = callback;
+                document.head.appendChild(script);
+            } else {
+                callback();
+            }
+        }
+
+        loadNumericJS(() => {
+            console.log("Numeric.js dynamically loaded:", typeof numeric !== "undefined");
+        });
+    </script>
+</head>
+<body>
+    <h1>Interactive Savitzky-Golay (S-G) Filter Plot</h1>
+
+    <div id="slider-container">
+        <input type="range" id="window-slider" min="1" max="201" step="2" value="1">
+        <span id="window-value">Window Size: 5</span>
+    </div>
+
+    <div id="chart-container">
+        <div id="chart"></div>
+    </div>
+
+    <script>
+        let data = [];
+
+        d3.json("https://yishu-ji.github.io/DataGist/data.json").then(function(loadedData) {
+            console.log("Data loaded successfully:", loadedData);
+            
+            data = loadedData;
+            data.forEach(d => d.date = new Date(d.date));
+
+            if (!data || data.length === 0) {
+                console.error("Data failed to load or is empty.");
+                return;
+            }
+
+            updateChart(5);
+        }).catch(function(error) {
+            console.error("Error loading data.json:", error);
+        });
+
+        function savitzkyGolayFilter(values, windowSize, polyOrder) {
+            const halfWindow = Math.floor(windowSize / 2);
+            let smoothed = new Array(values.length).fill(null);
+
+            for (let i = halfWindow; i < values.length - halfWindow; i++) {
+                let subset = values.slice(i - halfWindow, i + halfWindow + 1);
+                let x = numeric.linspace(-halfWindow, halfWindow, subset.length);
+
+            // Build Vandermonde matrix for polynomial fitting
+                let X = numeric.linspace(-halfWindow, halfWindow, subset.length).map(val => {
+                return numeric.linspace(0, polyOrder, polyOrder + 1).map(power => Math.pow(val, power));
+                });
+
+                // Solve least squares polynomial regression: (X^T * X) * coeffs = (X^T * Y)
+                let Xt = numeric.transpose(X);
+                let XtX = numeric.dot(Xt, X);
+                let XtY = numeric.dot(Xt, subset);
+                let coeffs = numeric.solve(XtX, XtY);
+
+                // Predict central value
+                smoothed[i] = coeffs.reduce((sum, c, index) => sum + c * Math.pow(0, index), 0);
+            }
+        return smoothed;
+        }
+
+        function updateChart(windowSize) {
+            if (!data.length) {
+                console.error("Data is not available yet.");
+                return;
+            }
+            
+            let smoothedValues = savitzkyGolayFilter(data.map(d => d.value), windowSize, 4);
+            let trimmedData = data.slice(200, data.length - 200);
+            let trimmedSmoothedValues = smoothedValues.slice(200, smoothedValues.length - 200);
+
+            let traceOriginal = {
+                x: trimmedData.map(d => d.date),
+                y: trimmedData.map(d => d.value),
+                mode: "lines",
+                name: "Original Data",
+                line: { color: "lightgray" }
+            };
+
+            let traceSG = {
+                x: trimmedData.map(d => d.date),
+                y: trimmedSmoothedValues,
                 mode: "lines",
                 name: `S-G Filter (Window: ${windowSize})`,
                 line: { color: "blue" }
