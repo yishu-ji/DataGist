@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interactive SGF Plot</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script>
+    <script>
+        console.log("Numeric.js loaded:", typeof numeric !== "undefined");
+    </script>
+
     <script src="https://d3js.org/d3.v6.min.js"></script>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <style>
@@ -30,11 +34,25 @@
     <script>
         let data = []; // Global variable to store data
 
-        d3.json("https://yishu-ji.github.io/DataGist/data.json").then(function(loadedData) {
-            console.log("Data loaded successfully:", loadedData);
+        function loadNumericJS(callback) {
+            if (typeof numeric === "undefined") {
+                let script = document.createElement("script");
+                script.src = "https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js";
+                script.onload = callback;
+                document.head.appendChild(script);
+                } else {
+                    callback();
+                }
+            }
+
+        loadNumericJS(() => {
+            console.log("Numeric.js successfully loaded.");
+            d3.json("https://yishu-ji.github.io/DataGist/data.json").then(function(loadedData) {
+
+                console.log("Data loaded successfully:", loadedData);
             
-            data = loadedData; // Store data globally
-            data.forEach(d => d.date = new Date(d.date));
+                data = loadedData; // Store data globally
+                data.forEach(d => d.date = new Date(d.date));
 
             if (!data || data.length === 0) {
                 console.error("Data failed to load or is empty.");
