@@ -240,15 +240,11 @@
             });
         }
 
-        // Function to set Qualtrics Embedded Data
-        function saveSliderValue(fieldName, alpha) {
-            if (window.parent && window.parent.Qualtrics && typeof window.parent.Qualtrics.SurveyEngine !== "undefined") {
-                console.log(`Setting Embedded Data in Qualtrics: ${fieldName} = ${Math.round(alpha)}`);
-                window.parent.Qualtrics.SurveyEngine.setEmbeddedData(fieldName, Math.round(alpha));
-            } else {
-                console.warn(`Qualtrics API not detected. ${fieldName} not saved.`);
+        // Send slider value to Qualtrics via postMessage
+        function sendSliderValueToQualtrics(fieldName, alpha) {
+            window.parent.postMessage({ fieldName: fieldName, value: Math.round(alpha) }, "*");
             }
-        }
+
 
         // Event listener for slider movement
         function initializeSlider(sliderId, fieldName) {
@@ -266,10 +262,11 @@
 
             // Save final value when the user moves to the next question
             if (window.parent && window.parent.Qualtrics) {
-                window.parent.Qualtrics.SurveyEngine.addOnPageSubmit(function() {
+                window.addEventListener("beforeunload", function() {
                     let finalAlpha = +d3.select(`#${sliderId}`).property("value");
-                    saveSliderValue(fieldName, finalAlpha);
+                    sendSliderValueToQualtrics(fieldName, finalAlpha);
                 });
+
             }
         }
 
