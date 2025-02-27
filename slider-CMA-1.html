@@ -141,7 +141,6 @@
 </html>
 
  -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -241,6 +240,7 @@
         }
 
         function sendSliderValueToQualtrics(fieldName, alpha) {
+            console.log(`Sending to Qualtrics: ${fieldName} = ${Math.round(alpha)}`);
             window.parent.postMessage({ fieldName: fieldName, value: Math.round(alpha) }, "*");
         }
 
