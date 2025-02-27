@@ -10,7 +10,7 @@
         body { font-family: Arial, sans-serif; text-align: center; }
         #chart-container { width: 90%; height: 600px; margin: auto; }
         #slider-container { width: 80%; margin: 20px auto; }
-        #window-slider { width: 100%; }
+        #window-slider-CMA-1 { width: 100%; }
     </style>
 </head>
 <body>
@@ -19,7 +19,7 @@
 
     <div id="slider-container">
         <input type="range" id="window-slider" min="1" max="200" step="1" value="1">
-        <span id="window-value">Window Size: 1</span>
+        <span id="window-value-CMA-1">Parameter: 1</span>
     </div>
 
     <div id="chart-container">
@@ -96,11 +96,18 @@
             });
         }
 
-        d3.select("#window-slider").on("input", function() {
+
+        d3.select("#window-slider-CMA-1").on("input", function() {
             let windowSize = +this.value;
-            d3.select("#window-value").text(`Window Size: ${windowSize}`);
+            d3.select("##window-value-CMA-1").text(`Parameter: ${windowSize}`);
             updateChart(windowSize);
-        });
+
+            // Store the selected slider value in Qualtrics Embedded Data
+            if (typeof Qualtrics !== "undefined") {
+                Qualtrics.SurveyEngine.setEmbeddedData("Alpha-CMA-1", windowSize.toFixed(2));
+                }
+            });
+
     </script>
 
 </body>
