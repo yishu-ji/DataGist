@@ -50,8 +50,7 @@
         });
 
         function savitzkyGolayFilter(values, alpha, polyOrder) {
-            const alpha = alpha * 2
-            const halfalpha = Math.floor(alpha / 2);
+            const halfalpha = Math.floor(alpha);
             let smoothed = values.slice(); // Initialize with original values
 
             for (let i = halfalpha; i < values.length - halfalpha; i++) {
