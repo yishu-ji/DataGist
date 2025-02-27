@@ -6,19 +6,29 @@
     <title>Interactive S-G Filter Plot</title>
     <script src="https://d3js.org/d3.v6.min.js"></script>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+    <!-- Ensure Numeric.js is loaded first -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script>
+    
+    <!-- Debugging Numeric.js loading -->
     <script>
-        console.log("Numeric.js loaded:", typeof numeric !== "undefined");
-    </script><!-- Added Numeric.js -->
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; }
-        #chart-container { width: 90%; height: 600px; margin: auto; }
-        #slider-container { width: 80%; margin: 20px auto; }
-        #window-slider { width: 100%; }
-    </style>
+        function loadNumericJS(callback) {
+            if (typeof numeric === "undefined") {
+                let script = document.createElement("script");
+                script.src = "https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js";
+                script.onload = callback;
+                document.head.appendChild(script);
+            } else {
+                callback();
+            }
+        }
+
+        loadNumericJS(() => {
+            console.log("Numeric.js dynamically loaded:", typeof numeric !== "undefined");
+        });
+    </script>
 </head>
 <body>
-
     <h1>Interactive Savitzky-Golay (S-G) Filter Plot</h1>
 
     <div id="slider-container">
@@ -52,12 +62,12 @@
         function savitzkyGolayFilter(values, windowSize, polyOrder) {
             const halfWindow = Math.floor(windowSize / 2);
             let smoothed = new Array(values.length).fill(null);
+            
             for (let i = halfWindow; i < values.length - halfWindow; i++) {
                 let subset = values.slice(i - halfWindow, i + halfWindow + 1);
                 let x = numeric.linspace(-halfWindow, halfWindow, subset.length);
                 let coeffs = numeric.polyFit(x, subset, polyOrder);
-        
-                smoothed[i] = numeric.polyval(coeffs, 0); // Estimate central point
+                smoothed[i] = numeric.polyval(coeffs, 0);
             }
             return smoothed;
         }
@@ -103,6 +113,5 @@
             updateChart(windowSize);
         });
     </script>
-
 </body>
 </html>
