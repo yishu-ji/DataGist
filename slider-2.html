@@ -62,15 +62,28 @@
         function savitzkyGolayFilter(values, windowSize, polyOrder) {
             const halfWindow = Math.floor(windowSize / 2);
             let smoothed = new Array(values.length).fill(null);
-            
+
             for (let i = halfWindow; i < values.length - halfWindow; i++) {
                 let subset = values.slice(i - halfWindow, i + halfWindow + 1);
                 let x = numeric.linspace(-halfWindow, halfWindow, subset.length);
-                let coeffs = numeric.polyFit(x, subset, polyOrder);
-                smoothed[i] = numeric.polyval(coeffs, 0);
+
+            // Build Vandermonde matrix for polynomial fitting
+                let X = numeric.linspace(-halfWindow, halfWindow, subset.length).map(val => {
+                return numeric.linspace(0, polyOrder, polyOrder + 1).map(power => Math.pow(val, power));
+                });
+
+                // Solve least squares polynomial regression: (X^T * X) * coeffs = (X^T * Y)
+                let Xt = numeric.transpose(X);
+                let XtX = numeric.dot(Xt, X);
+                let XtY = numeric.dot(Xt, subset);
+                let coeffs = numeric.solve(XtX, XtY);
+
+                // Predict central value
+                smoothed[i] = coeffs.reduce((sum, c, index) => sum + c * Math.pow(0, index), 0);
             }
-            return smoothed;
+        return smoothed;
         }
+
 
         function updateChart(windowSize) {
             if (!data.length) {
