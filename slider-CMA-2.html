@@ -10,7 +10,7 @@
         body { font-family: Arial, sans-serif; text-align: center; }
         #chart-container { width: 90%; height: 600px; margin: auto; }
         #slider-container { width: 80%; margin: 20px auto; }
-        #window-slider { width: 100%; }
+        #slider-CMA-2 { width: 100%; }
     </style>
 </head>
 <body>
@@ -18,8 +18,8 @@
     <h3>Interactive Approximated Plot - Algorithm C</h3>
 
     <div id="slider-container">
-        <input type="range" id="window-slider" min="1" max="200" step="1" value="200">
-        <span id="window-value">Window Size: 200</span>
+        <input type="range" id="slider-CMA-2" min="1" max="200" step="1" value="200">
+        <span id="alpha-value">Parameter: 200</span>
     </div>
 
     <div id="chart-container">
@@ -45,12 +45,12 @@
             console.error("Error loading data.json:", error);
         });
 
-        function computeCMA(windowSize) {
+        function computeCMA(alpha) {
             let smoothed = [];
-            let halfWindow = Math.floor(windowSize / 2);
+            let halfalpha = Math.floor(alpha / 2);
             for (let i = 0; i < data.length; i++) {
-                let start = Math.max(0, i - halfWindow);
-                let end = Math.min(data.length, i + halfWindow + 1);
+                let start = Math.max(0, i - halfalpha);
+                let end = Math.min(data.length, i + halfalpha + 1);
                 let subset = data.slice(start, end);
                 let avg = d3.mean(subset, d => d.value);
                 smoothed.push({ date: data[i].date, value: avg });
@@ -58,13 +58,13 @@
             return smoothed;
         }
 
-        function updateChart(windowSize) {
+        function updateChart(alpha) {
             if (!data.length) {
                 console.error("Data is not available yet.");
                 return;
             }
             
-            let smoothedData = computeCMA(windowSize);
+            let smoothedData = computeCMA(alpha);
 
             // Remove first and last 200 data points
             let trimmedData = smoothedData.slice(200, smoothedData.length - 200);
@@ -82,7 +82,7 @@
                 x: trimmedData.map(d => d.date),
                 y: trimmedData.map(d => d.value),
                 mode: "lines",
-                name: `Approximated Data (Window: ${windowSize})`,
+                name: `Approximated Data (Parameter: ${alpha})`,
                 line: { color: "blue" }
             };
 
@@ -96,13 +96,29 @@
             });
         }
 
-        d3.select("#window-slider").on("input", function() {
-            let windowSize = +this.value;
-            d3.select("#window-value").text(`Window Size: ${windowSize}`);
-            updateChart(windowSize);
-        });
-    </script>
+        function sendSliderValueToQualtrics(fieldName, alpha) {
+            console.log(`Sending to Qualtrics: ${fieldName} = ${Math.round(alpha)}`);
+            window.parent.postMessage({ fieldName: fieldName, value: Math.round(alpha) }, "*");
+        }
 
+        function initializeSlider(sliderId, fieldName) {
+            d3.select(`#${sliderId}`).on("input", function() {
+                let alpha = +this.value;
+                d3.select(`#alpha-value`).text(`Parameter: ${Math.round(alpha)}`);
+                updateChart(alpha);
+                clearTimeout(window[sliderId + "_timeout"]);
+                window[sliderId + "_timeout"] = setTimeout(() => {
+                    sendSliderValueToQualtrics(fieldName, alpha);
+                }, 1000);
+            });
+
+            window.addEventListener("beforeunload", function() {
+                let finalAlpha = +d3.select(`#${sliderId}`).property("value");
+                sendSliderValueToQualtrics(fieldName, finalAlpha);
+            });
+        }
+
+        initializeSlider("slider-CMA-2", "parameter-CMA-2");
+    </script>
 </body>
 </html>
-
