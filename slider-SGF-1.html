@@ -32,8 +32,8 @@
     <h3>Interactive Approximated Plot - Algorithm S</h3>
 
     <div id="slider-container">
-        <input type="range" id="window-slider" min="1" max="201" step="2" value="1">
-        <span id="window-value">Window Size: 5</span>
+        <input type="range" id="alpha-slider" min="1" max="201" step="2" value="1">
+        <span id="alpha-value">alpha Size: 5</span>
     </div>
 
     <div id="chart-container">
@@ -59,16 +59,16 @@
             console.error("Error loading data.json:", error);
         });
 
-        function savitzkyGolayFilter(values, windowSize, polyOrder) {
-            const halfWindow = Math.floor(windowSize / 2);
+        function savitzkyGolayFilter(values, alpha, polyOrder) {
+            const halfalpha = Math.floor(alpha / 2);
             let smoothed = new Array(values.length).fill(null);
 
-            for (let i = halfWindow; i < values.length - halfWindow; i++) {
-                let subset = values.slice(i - halfWindow, i + halfWindow + 1);
-                let x = numeric.linspace(-halfWindow, halfWindow, subset.length);
+            for (let i = halfalpha; i < values.length - halfalpha; i++) {
+                let subset = values.slice(i - halfalpha, i + halfalpha + 1);
+                let x = numeric.linspace(-halfalpha, halfalpha, subset.length);
 
             // Build Vandermonde matrix for polynomial fitting
-                let X = numeric.linspace(-halfWindow, halfWindow, subset.length).map(val => {
+                let X = numeric.linspace(-halfalpha, halfalpha, subset.length).map(val => {
                 return numeric.linspace(0, polyOrder, polyOrder + 1).map(power => Math.pow(val, power));
                 });
 
@@ -84,13 +84,13 @@
         return smoothed;
         }
 
-        function updateChart(windowSize) {
+        function updateChart(alpha) {
             if (!data.length) {
                 console.error("Data is not available yet.");
                 return;
             }
             
-            let smoothedValues = savitzkyGolayFilter(data.map(d => d.value), windowSize, 4);
+            let smoothedValues = savitzkyGolayFilter(data.map(d => d.value), alpha, 4);
             let trimmedData = data.slice(200, data.length - 200);
             let trimmedSmoothedValues = smoothedValues.slice(200, smoothedValues.length - 200);
 
@@ -106,7 +106,7 @@
                 x: trimmedData.map(d => d.date),
                 y: trimmedSmoothedValues,
                 mode: "lines",
-                name: `S-G Filter (Window: ${windowSize})`,
+                name: `Approximated Data (Parameter: ${alpha})`,
                 line: { color: "blue" }
             };
 
@@ -120,10 +120,10 @@
             });
         }
 
-        d3.select("#window-slider").on("input", function() {
-            let windowSize = +this.value;
-            d3.select("#window-value").text(`Window Size: ${windowSize}`);
-            updateChart(windowSize);
+        d3.select("#alpha-slider").on("input", function() {
+            let alpha = +this.value;
+            d3.select("#alpha-value").text(`alpha Size: ${alpha}`);
+            updateChart(alpha);
         });
     </script>
 </body>
