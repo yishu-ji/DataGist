@@ -250,7 +250,7 @@
         function initializeSlider(sliderId, fieldName) {
             d3.select(`#${sliderId}`).on("input", function() {
                 let alpha = +this.value;
-                d3.select(`#${sliderId}-value`).text(`Parameter: ${Math.round(alpha)}`);
+                d3.select(`#alpha-value`).text(`Parameter: ${Math.round(alpha)}`);
                 updateChart(alpha);
 
                 // Save value in Qualtrics when the user stops adjusting
@@ -262,11 +262,10 @@
 
             // Save final value when the user moves to the next question
             if (window.parent && window.parent.Qualtrics) {
-                window.addEventListener("beforeunload", function() {
+                window.parent.Qualtrics.SurveyEngine.addOnPageSubmit(function() {
                     let finalAlpha = +d3.select(`#${sliderId}`).property("value");
-                    sendSliderValueToQualtrics(fieldName, finalAlpha);
+                    saveSliderValue(fieldName, finalAlpha);
                 });
-
             }
         }
 
