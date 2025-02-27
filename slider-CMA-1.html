@@ -240,36 +240,27 @@
             });
         }
 
-        // Send slider value to Qualtrics via postMessage
         function sendSliderValueToQualtrics(fieldName, alpha) {
             window.parent.postMessage({ fieldName: fieldName, value: Math.round(alpha) }, "*");
-            }
+        }
 
-
-        // Event listener for slider movement
         function initializeSlider(sliderId, fieldName) {
             d3.select(`#${sliderId}`).on("input", function() {
                 let alpha = +this.value;
                 d3.select(`#alpha-value`).text(`Parameter: ${Math.round(alpha)}`);
                 updateChart(alpha);
-
-                // Save value in Qualtrics when the user stops adjusting
                 clearTimeout(window[sliderId + "_timeout"]);
                 window[sliderId + "_timeout"] = setTimeout(() => {
-                    saveSliderValue(fieldName, alpha);
-                }, 1000); // Only save after 1 second of no movement
+                    sendSliderValueToQualtrics(fieldName, alpha);
+                }, 1000);
             });
 
-            // Save final value when the user moves to the next question
-            if (window.parent && window.parent.Qualtrics) {
-                window.parent.Qualtrics.SurveyEngine.addOnPageSubmit(function() {
-                    let finalAlpha = +d3.select(`#${sliderId}`).property("value");
-                    saveSliderValue(fieldName, finalAlpha);
-                });
-            }
+            window.addEventListener("beforeunload", function() {
+                let finalAlpha = +d3.select(`#${sliderId}`).property("value");
+                sendSliderValueToQualtrics(fieldName, finalAlpha);
+            });
         }
 
-        // Initialize the slider with unique Qualtrics field
         initializeSlider("slider-CMA-1", "parameter-CMA-1");
     </script>
 </body>
