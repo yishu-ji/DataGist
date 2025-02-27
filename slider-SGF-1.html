@@ -92,11 +92,7 @@
             }
             
             let smoothedValues = savitzkyGolayFilter(data.map(d => d.value), windowSize, 4);
-            // let trimmedData = data.slice(Math.floor(windowSize / 2), data.length - Math.floor(windowSize / 2));
-
-            // Remove first and last 200 data points
-            let trimmedData = smoothedValues.slice(200, smoothedValues.length - 200);
-            let trimmedDates = data.slice(200, data.length - 200);
+            let trimmedData = data.slice(Math.floor(windowSize / 2), data.length - Math.floor(windowSize / 2));
 
             let traceOriginal = {
                 x: data.map(d => d.date),
