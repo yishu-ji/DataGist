@@ -232,7 +232,7 @@
             // Ensure Qualtrics API is available before setting Embedded Data
                 if (window.parent && window.parent.Qualtrics && typeof window.parent.Qualtrics.SurveyEngine !== "undefined") {
                     console.log("Setting Embedded Data in Qualtrics:", windowSize.toFixed(2));
-                    window.parent.Qualtrics.SurveyEngine.setEmbeddedData("Final_Alpha", windowSize.toFixed(2));
+                    window.parent.Qualtrics.SurveyEngine.setEmbeddedData("Parameter-CMA-1", windowSize.toFixed(2));
                 } else {
                     console.warn("Qualtrics API not detected. Embedded Data not saved.");
                     }
