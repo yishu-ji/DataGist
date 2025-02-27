@@ -219,16 +219,25 @@
         }
 
 
-        d3.select("#window-slider").on("input", function() {
-            let windowSize = +this.value;
-            d3.select("#window-value").text(`Parameter: ${windowSize}`);
-            updateChart(windowSize);
+        // d3.select("#window-slider").on("input", function() {
+        //     let windowSize = +this.value;
+        //     d3.select("#window-value").text(`Parameter: ${windowSize}`);
+        //     updateChart(windowSize);
+        //     });
+            d3.select("#alpha-slider").on("input", function() {
+                let windowSize = +this.value;
+                d3.select("#windowSize-value").text(`Parameter: ${windowSize.toFixed(2)}`);
+                updateChart(windowSize);
 
-            // // Store the selected slider value in Qualtrics Embedded Data
-            // if (typeof Qualtrics !== "undefined") {
-            //     Qualtrics.SurveyEngine.setEmbeddedData("Parameter-CMA-1", windowSize.toFixed(2));
-            //     }
+            // Ensure Qualtrics API is available before setting Embedded Data
+                if (window.parent && window.parent.Qualtrics && typeof window.parent.Qualtrics.SurveyEngine !== "undefined") {
+                    console.log("Setting Embedded Data in Qualtrics:", windowSize.toFixed(2));
+                    window.parent.Qualtrics.SurveyEngine.setEmbeddedData("Final_Alpha", windowSize.toFixed(2));
+                } else {
+                    console.warn("Qualtrics API not detected. Embedded Data not saved.");
+                    }
             });
+
 
     </script>
 
