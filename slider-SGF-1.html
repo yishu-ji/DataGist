@@ -51,7 +51,7 @@
 
         function savitzkyGolayFilter(values, alpha, polyOrder) {
             const halfalpha = Math.floor(alpha / 2);
-            let smoothed = new Array(values.length).fill(null);
+            let smoothed = values.slice(); // Initialize with original values
 
             for (let i = halfalpha; i < values.length - halfalpha; i++) {
                 let subset = values.slice(i - halfalpha, i + halfalpha + 1);
@@ -84,7 +84,9 @@
 
 
             // Remove first and last 200 data points
-            let trimmedData = smoothedData.slice(200, smoothedData.length - 200);
+            let trimmedData = data.slice(200, data.length - 200); // Ensure x and y values match
+            let trimmedSmoothedValues = smoothedData.slice(200, smoothedData.length - 200);
+
             let trimmedDates = data.slice(200, data.length - 200);
 
             let traceOriginal = {
@@ -97,7 +99,7 @@
 
             let traceSGF = {
                 x: trimmedData.map(d => d.date),
-                y: trimmedData.map(d => d.value),
+                y: trimmedSmoothedValues, // Use corrected y-values
                 mode: "lines",
                 name: `Approximated Data (Parameter: ${alpha})`,
                 line: { color: "blue" }
