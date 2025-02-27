@@ -10,7 +10,7 @@
         body { font-family: Arial, sans-serif; text-align: center; }
         #chart-container { width: 90%; height: 600px; margin: auto; }
         #slider-container { width: 80%; margin: 20px auto; }
-        #slider-CMA-2 { width: 100%; }
+        #slider-CMA-2 { width: 80%; }
     </style>
 </head>
 <body>
@@ -87,7 +87,7 @@
             };
 
             Plotly.newPlot("chart", [traceOriginal, traceCMA], {
-                title: "Central Moving Average",
+                title: " ",
                 xaxis: { title: "Date", tickformat: "%Y-%m-%d" },
                 yaxis: { title: "Value" },
                 width: 900,  // Custom width
