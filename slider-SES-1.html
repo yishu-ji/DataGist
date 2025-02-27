@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Simple Exponential Smoothing (SES) Plot</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <h1>Interactive Simple Exponential Smoothing (SES) Plot</h1>
+
+    <div id="slider-container">
+        <input type="range" id="alpha-slider" min="0.01" max="1" step="0.01" value="0.5">
+        <span id="alpha-value">Smoothing Factor: 0.5</span>
+    </div>
+
+    <div id="chart-container">
+        <div id="chart"></div>
+    </div>
+
+    <script>
+        let data = [];
+
+        d3.json("https://yishu-ji.github.io/DataGist/data.json").then(function(loadedData) {
+            console.log("Data loaded successfully:", loadedData);
+            
+            data = loadedData;
+            data.forEach(d => d.date = new Date(d.date));
+
+            if (!data || data.length === 0) {
+                console.error("Data failed to load or is empty.");
+                return;
+            }
+
+            updateChart(0.5);
+        }).catch(function(error) {
+            console.error("Error loading data.json:", error);
+        });
+
+        function simpleExponentialSmoothing(values, alpha) {
+            let smoothed = new Array(values.length).fill(null);
+            smoothed[0] = values[0];
+            for (let i = 1; i < values.length; i++) {
+                smoothed[i] = alpha * values[i] + (1 - alpha) * smoothed[i - 1];
+            }
+            return smoothed;
+        }
+
+        function updateChart(alpha) {
+            if (!data.length) {
+                console.error("Data is not available yet.");
+                return;
+            }
+            
+            let smoothedValues = simpleExponentialSmoothing(data.map(d => d.value), alpha);
+            let trimmedData = data.slice(200, data.length - 200);
+            let trimmedSmoothedValues = smoothedValues.slice(200, smoothedValues.length - 200);
+
+            let traceOriginal = {
+                x: trimmedData.map(d => d.date),
+                y: trimmedData.map(d => d.value),
+                mode: "lines",
+                name: "Original Data",
+                line: { color: "lightgray" }
+            };
+
+            let traceSES = {
+                x: trimmedData.map(d => d.date),
+                y: trimmedSmoothedValues,
+                mode: "lines",
+                name: `SES (Alpha: ${alpha.toFixed(2)})`,
+                line: { color: "blue" }
+            };
+
+            Plotly.newPlot("chart", [traceOriginal, traceSES], {
+                title: "Simple Exponential Smoothing Approximation",
+                xaxis: { title: "Date", tickformat: "%Y-%m-%d" },
+                yaxis: { title: "Value" },
+                width: 900,
+                height: 500,
+                responsive: true
+            });
+        }
+
+        d3.select("#alpha-slider").on("input", function() {
+            let alpha = +this.value;
+            d3.select("#alpha-value").text(`Smoothing Factor: ${alpha.toFixed(2)}`);
+            updateChart(alpha);
+        });
+    </script>
+</body>
+</html>
