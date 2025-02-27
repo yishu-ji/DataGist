@@ -8,9 +8,9 @@
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; }
-        #chart-container { width: 90%; height: 600px; margin: auto; }
+        #chart-container { width: 90%; height: 500px; margin: auto; }
         #slider-container { width: 80%; margin: 20px auto; }
-        #slider-CMA-2 { width: 80%; }
+        #slider-CMA-2 { width: 100%; }
     </style>
 </head>
 <body>
@@ -88,7 +88,7 @@
 
             Plotly.newPlot("chart", [traceOriginal, traceCMA], {
                 title: " ",
-                xaxis: { title: "Date", tickformat: "%Y-%m-%d" },
+                xaxis: { title: "Date", tickformat: "%Y-%m" },
                 yaxis: { title: "Value" },
                 width: 900,  // Custom width
                 height: 500, // Custom height
