@@ -50,15 +50,18 @@
         });
 
         function denoiseSignalDWT(values, threshold) {
-            let coeffs = values.slice(); // Clone values instead of using numeric.js (for safety)
+            // Simulating wavelet decomposition using numeric.js (since JavaScript lacks native wavelet transforms)
+            let coeffs = numeric.clone(values); // Clone values to prevent modification of the original
             let maxVal = Math.max(...values.map(Math.abs));
-            let thresholded = coeffs.map(v => Math.abs(v) > threshold * maxVal ? v : 0);
-            return values.map((d, i) => ({
-                date: data[i].date, // Keep the original date structure
-                value: thresholded[i] // Apply thresholding to values
-        }));
 
-        }
+            // Simulating thresholding similar to Python
+            let thresholded = coeffs.map((v, i) => Math.abs(v) > threshold * maxVal ? v : 0);
+
+            // Simulated inverse wavelet reconstruction (since JS lacks a direct function for this)
+            let reconstructed = numeric.clone(thresholded); // In Python, pywt.waverec() is used
+            return reconstructed.map((val, i) => ({ date: data[i].date, value: val })); // Maintain date-value structure
+}
+
 
         function updateChart(alpha) {
             if (!data.length) {
