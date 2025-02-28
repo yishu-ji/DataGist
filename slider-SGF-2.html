@@ -3,37 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive S-G Filter Plot</title>
+    <title>Interactive SGF Plot</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script>
+    <script>
+        console.log("Numeric.js loaded:", typeof numeric !== "undefined");
+    </script>
+
     <script src="https://d3js.org/d3.v6.min.js"></script>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-
-    <!-- Ensure Numeric.js is loaded first -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script>
-    
-    <!-- Debugging Numeric.js loading -->
-    <script>
-        function loadNumericJS(callback) {
-            if (typeof numeric === "undefined") {
-                let script = document.createElement("script");
-                script.src = "https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js";
-                script.onload = callback;
-                document.head.appendChild(script);
-            } else {
-                callback();
-            }
-        }
-
-        loadNumericJS(() => {
-            console.log("Numeric.js dynamically loaded:", typeof numeric !== "undefined");
-        });
-    </script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        #chart-container { width: 90%; height: 500px; margin: auto; }
+        #slider-container { width: 600px; margin: 20px auto; }
+        #slider-SGF-2 { width: 100%; }
+    </style>
 </head>
 <body>
-    <h3>Interactive Approximated Plot - Algorithm S</h3>
+
+    <h3>Interactive Approximated Plot - Algorithm C</h3>
 
     <div id="slider-container">
-        <input type="range" id="window-slider" min="1" max="201" step="2" value="201">
-        <span id="window-value">Window Size: 201</span>
+        <input type="range" id="slider-SGF-2" min="1" max="201" step="2" value="201">
+        <span id="alpha-value">Parameter: 201</span>
     </div>
 
     <div id="chart-container">
@@ -41,34 +32,35 @@
     </div>
 
     <script>
-        let data = [];
+        let data = []; // Global variable to store data
 
         d3.json("https://yishu-ji.github.io/DataGist/data.json").then(function(loadedData) {
-            console.log("Data loaded successfully:", loadedData);
-            
-            data = loadedData;
-            data.forEach(d => d.date = new Date(d.date));
+                console.log("Data loaded successfully:", loadedData);
+                data = loadedData; // Store data globally
+                data.forEach(d => d.date = new Date(d.date));
 
             if (!data || data.length === 0) {
                 console.error("Data failed to load or is empty.");
                 return;
             }
 
-            updateChart(201);
+            updateChart(201); // Initial plot
         }).catch(function(error) {
             console.error("Error loading data.json:", error);
         });
 
-        function savitzkyGolayFilter(values, windowSize, polyOrder) {
-            const halfWindow = Math.floor(windowSize / 2);
-            let smoothed = new Array(values.length).fill(null);
+        function savitzkyGolayFilter(values, alpha, polyOrder) {
+            const halfalpha = Math.max(1, Math.floor(alpha / 2));
+            let smoothed = values.slice(); // Initialize with original values
 
-            for (let i = halfWindow; i < values.length - halfWindow; i++) {
-                let subset = values.slice(i - halfWindow, i + halfWindow + 1);
-                let x = numeric.linspace(-halfWindow, halfWindow, subset.length);
+
+
+            for (let i = halfalpha; i < values.length - halfalpha; i++) {
+                let subset = values.slice(i - halfalpha, i + halfalpha + 1);
+                let x = numeric.linspace(-halfalpha, halfalpha, subset.length);
 
             // Build Vandermonde matrix for polynomial fitting
-                let X = numeric.linspace(-halfWindow, halfWindow, subset.length).map(val => {
+                let X = numeric.linspace(-halfalpha, halfalpha, subset.length).map(val => {
                 return numeric.linspace(0, polyOrder, polyOrder + 1).map(power => Math.pow(val, power));
                 });
 
@@ -84,47 +76,70 @@
         return smoothed;
         }
 
-        function updateChart(windowSize) {
+        function updateChart(alpha) {
             if (!data.length) {
                 console.error("Data is not available yet.");
                 return;
             }
             
-            let smoothedValues = savitzkyGolayFilter(data.map(d => d.value), windowSize, 4);
-            let trimmedData = data.slice(200, data.length - 200);
-            let trimmedSmoothedValues = smoothedValues.slice(200, smoothedValues.length - 200);
+            let smoothedData = savitzkyGolayFilter(data.map(d => d.value), alpha, 4);
+
+
+            // Remove first and last 200 data points
+            let trimmedData = data.slice(200, data.length - 200); // Ensure x and y values match
+            let trimmedSmoothedValues = smoothedData.slice(200, smoothedData.length - 200);
+
+            let trimmedDates = data.slice(200, data.length - 200);
 
             let traceOriginal = {
-                x: trimmedData.map(d => d.date),
-                y: trimmedData.map(d => d.value),
+                x: trimmedDates.map(d => d.date),
+                y: trimmedDates.map(d => d.value),
                 mode: "lines",
                 name: "Original Data",
                 line: { color: "lightgray" }
             };
 
-            let traceSG = {
+            let traceSGF = {
                 x: trimmedData.map(d => d.date),
-                y: trimmedSmoothedValues,
+                y: trimmedSmoothedValues, // Use corrected y-values
                 mode: "lines",
-                name: `S-G Filter (Window: ${windowSize})`,
+                name: `Approximated Data (Parameter: ${alpha})`,
                 line: { color: "blue" }
             };
 
-            Plotly.newPlot("chart", [traceOriginal, traceSG], {
-                title: "Savitzky-Golay Filter Approximation",
-                xaxis: { title: "Date", tickformat: "%Y-%m-%d" },
+            Plotly.newPlot("chart", [traceOriginal, traceSGF], {
+                title: " ",
+                xaxis: { title: "Date", tickformat: "%Y-%m" },
                 yaxis: { title: "Value" },
-                width: 900,
-                height: 500,
-                responsive: true
+                width: 900,  // Custom width
+                height: 500, // Custom height
+                responsive: true  // Enable auto-resizing
             });
         }
 
-        d3.select("#window-slider").on("input", function() {
-            let windowSize = +this.value;
-            d3.select("#window-value").text(`Window Size: ${windowSize}`);
-            updateChart(windowSize);
-        });
+        function sendSliderValueToQualtrics(fieldName, alpha) {
+            console.log(`Sending to Qualtrics: ${fieldName} = ${Math.round(alpha)}`);
+            window.parent.postMessage({ fieldName: fieldName, value: Math.round(alpha) }, "*");
+        }
+
+        function initializeSlider(sliderId, fieldName) {
+            d3.select(`#${sliderId}`).on("input", function() {
+                let alpha = +this.value;
+                d3.select(`#alpha-value`).text(`Parameter: ${Math.round(alpha)}`);
+                updateChart(alpha);
+                clearTimeout(window[sliderId + "_timeout"]);
+                window[sliderId + "_timeout"] = setTimeout(() => {
+                    sendSliderValueToQualtrics(fieldName, alpha);
+                }, 1000);
+            });
+
+            window.addEventListener("beforeunload", function() {
+                let finalAlpha = +d3.select(`#${sliderId}`).property("value");
+                sendSliderValueToQualtrics(fieldName, finalAlpha);
+            });
+        }
+
+        initializeSlider("slider-SGF-2", "parameter-SGF-2");
     </script>
 </body>
 </html>
