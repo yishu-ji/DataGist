@@ -56,7 +56,7 @@
             console.error("Error loading data.json:", error);
         });
 
-function denoiseSignalDWT(values, waveletName, level, threshold) {
+function denoiseSignalDWT(values, waveletName, threshold) {
 // // Single Level
   // // decomposit the signal
   //   let [approx, detail] = wt.dwt(values, waveletName);
@@ -74,7 +74,7 @@ function denoiseSignalDWT(values, waveletName, level, threshold) {
 
 // Multi Level
 // decomposit the signal
-    let [approx, detail] = wt.wavedec(values, waveletName, level);
+    let [approx, detail] = wt.wavedec(values, waveletName);
 
   // threshold detail
   let maxVal = Math.max(...detail.map(Math.abs));
@@ -99,11 +99,11 @@ function updateChart(alpha) {
   // 1. Perform wavelet-based denoising
   // e.g., waveletName = 'db6' and level = 5
   const waveletName = "db6";
-  const level = "5";
+  // const level = "5";
   const smoothedData = denoiseSignalDWT(
     data.map(d => d.value),
     waveletName,
-    level,
+    // level,
     alpha
   );
   // 2. Trim edges (like in Python)
