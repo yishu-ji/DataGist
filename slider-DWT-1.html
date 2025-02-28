@@ -50,21 +50,34 @@
         });
 
         function denoiseSignalDWT(values, threshold) {
-            // Simulating wavelet decomposition using numeric.js (since JavaScript lacks native wavelet transforms)
-            let coeffs = numeric.clone(values); // Clone values to prevent modification of the original
-            let maxVal = Math.max(...values.map(Math.abs));
+    let coeffs = numeric.clone(values); // Simulating wavelet decomposition
+    
+    // Simulate multi-level decomposition (5 levels)
+    let levels = 5;
+    let waveletCoeffs = [];
+    for (let i = 0; i < levels; i++) {
+        let step = Math.pow(2, i);
+        let subband = values.filter((_, index) => index % step === 0); // Approximate decomposition
+        waveletCoeffs.push(subband);
+    }
 
-            let smoothed = values.slice(); // Initialize with original values
+    // Apply thresholding to all levels except the first (approximate coefficients)
+    for (let i = 1; i < waveletCoeffs.length; i++) {
+        let maxVal = Math.max(...waveletCoeffs[i].map(Math.abs));
+        waveletCoeffs[i] = waveletCoeffs[i].map(v => Math.abs(v) > threshold * maxVal ? v : 0);
+    }
 
-            // Simulating thresholding similar to Python
-            let thresholded = coeffs.map((v, i) => Math.abs(v) > threshold * maxVal ? v : 0);
-
-            // Simulated inverse wavelet reconstruction (since JS lacks a direct function for this)
-            let reconstructed = numeric.clone(thresholded); // In Python, pywt.waverec() is used
-            // return reconstructed.map((val, i) => ({ date: data[i].date, value: val })); // Maintain date-value structure
-            smoothed = reconstructed
-            return smoothed
+    // Reconstruct signal (simulating inverse DWT)
+    let reconstructed = new Array(values.length).fill(0);
+    for (let i = 0; i < waveletCoeffs.length; i++) {
+        let step = Math.pow(2, i);
+        for (let j = 0; j < waveletCoeffs[i].length; j++) {
+            reconstructed[j * step] += waveletCoeffs[i][j];
         }
+    }
+    return reconstructed;
+}
+
 
 
         function updateChart(alpha) {
