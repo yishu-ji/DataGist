@@ -3,16 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Simple Exponential Smoothing (SES) Plot</title>
+    <title>Interactive SES Plot</title>
     <script src="https://d3js.org/d3.v6.min.js"></script>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        #chart-container { width: 90%; height: 500px; margin: auto; }
+        #slider-container { width: 600px; margin: 20px auto; }
+        #slider-SES-1 { width: 100%; }
+    </style>
 </head>
 <body>
-    <h1>Interactive Simple Exponential Smoothing (SES) Plot</h1>
+
+    <h3>Interactive Approximated Plot - Algorithm C</h3>
 
     <div id="slider-container">
-        <input type="range" id="alpha-slider" min="1" max="100" step="1" value="1">
-        <span id="alpha-value">Smoothing Factor: 1</span>
+        <input type="range" id="slider-SES-1" min="1" max="200" step="1" value="1">
+        <span id="alpha-value">Parameter: 1</span>
     </div>
 
     <div id="chart-container">
@@ -20,12 +27,12 @@
     </div>
 
     <script>
-        let data = [];
+        let data = []; // Global variable to store data
 
         d3.json("https://yishu-ji.github.io/DataGist/data.json").then(function(loadedData) {
             console.log("Data loaded successfully:", loadedData);
             
-            data = loadedData;
+            data = loadedData; // Store data globally
             data.forEach(d => d.date = new Date(d.date));
 
             if (!data || data.length === 0) {
@@ -33,7 +40,7 @@
                 return;
             }
 
-            updateChart(0.5);
+            updateChart(1); // Initial plot
         }).catch(function(error) {
             console.error("Error loading data.json:", error);
         });
@@ -54,13 +61,15 @@
                 return;
             }
             
-            let smoothedValues = simpleExponentialSmoothing(data.map(d => d.value), alpha);
-            let trimmedData = data.slice(200, data.length - 200);
-            let trimmedSmoothedValues = smoothedValues.slice(200, smoothedValues.length - 200);
+            let smoothedData = simpleExponentialSmoothing(data.map(d => d.value), alpha);
+
+            // Remove first and last 200 data points
+            let trimmedData = smoothedData.slice(200, smoothedData.length - 200);
+            let trimmedDates = data.slice(200, data.length - 200);
 
             let traceOriginal = {
-                x: trimmedData.map(d => d.date),
-                y: trimmedData.map(d => d.value),
+                x: trimmedDates.map(d => d.date),
+                y: trimmedDates.map(d => d.value),
                 mode: "lines",
                 name: "Original Data",
                 line: { color: "lightgray" }
@@ -68,27 +77,45 @@
 
             let traceSES = {
                 x: trimmedData.map(d => d.date),
-                y: trimmedSmoothedValues,
+                y: trimmedData.map(d => d.value),
                 mode: "lines",
-                name: `SES (Alpha: ${Math.round(alpha)})`,
+                name: `Approximated Data (Parameter: ${alpha})`,
                 line: { color: "blue" }
             };
 
             Plotly.newPlot("chart", [traceOriginal, traceSES], {
-                title: "Simple Exponential Smoothing Approximation",
-                xaxis: { title: "Date", tickformat: "%Y-%m-%d" },
+                title: " ",
+                xaxis: { title: "Date", tickformat: "%Y-%m" },
                 yaxis: { title: "Value" },
-                width: 900,
-                height: 500,
-                responsive: true
+                width: 900,  // Custom width
+                height: 500, // Custom height
+                responsive: true  // Enable auto-resizing
             });
         }
 
-        d3.select("#alpha-slider").on("input", function() {
-            let alpha = +this.value;
-            d3.select("#alpha-value").text(`Smoothing Factor: ${Math.round(alpha)}`);
-            updateChart(alpha);
-        });
+        function sendSliderValueToQualtrics(fieldName, alpha) {
+            console.log(`Sending to Qualtrics: ${fieldName} = ${Math.round(alpha)}`);
+            window.parent.postMessage({ fieldName: fieldName, value: Math.round(alpha) }, "*");
+        }
+
+        function initializeSlider(sliderId, fieldName) {
+            d3.select(`#${sliderId}`).on("input", function() {
+                let alpha = +this.value;
+                d3.select(`#alpha-value`).text(`Parameter: ${Math.round(alpha)}`);
+                updateChart(alpha);
+                clearTimeout(window[sliderId + "_timeout"]);
+                window[sliderId + "_timeout"] = setTimeout(() => {
+                    sendSliderValueToQualtrics(fieldName, alpha);
+                }, 1000);
+            });
+
+            window.addEventListener("beforeunload", function() {
+                let finalAlpha = +d3.select(`#${sliderId}`).property("value");
+                sendSliderValueToQualtrics(fieldName, finalAlpha);
+            });
+        }
+
+        initializeSlider("slider-SES-1", "parameter-SES-1");
     </script>
 </body>
 </html>
