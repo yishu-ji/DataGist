@@ -10,6 +10,8 @@
     </script>
     <script src="https://d3js.org/d3.v6.min.js"></script>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="waveletLib.min.js"></script>
+
     <style>
         body { font-family: Arial, sans-serif; text-align: center; }
         #chart-container { width: 90%; height: 500px; margin: auto; }
@@ -49,51 +51,71 @@
             console.error("Error loading data.json:", error);
         });
 
-        function denoiseSignalDWT(values, threshold) {
-    let coeffs = numeric.clone(values); // Simulating wavelet decomposition
-    
-    // Simulate multi-level decomposition (5 levels)
-    let levels = 5;
-    let waveletCoeffs = [];
-    for (let i = 0; i < levels; i++) {
-        let step = Math.pow(2, i);
-        let subband = values.filter((_, index) => index % step === 0); // Approximate decomposition
-        waveletCoeffs.push(subband);
-    }
+function denoiseSignalDWT(values, waveletName, level, thresholdPercent) {
+  // 1. Decompose the signal
+  // wavelet.dwt returns [approx, details] at each level. 
+  // You might need to repeatedly call dwt or use a library function that does multi-level decomposition automatically.
+  
+  let currentSignal = [...values]; 
+  let waveCoeffs = [];
+  
+  for (let i = 0; i < level; i++) {
+    // Single-level DWT
+    let { approx, detail } = wavelet.dwt(currentSignal, waveletName);
+    waveCoeffs.push(detail);
+    currentSignal = approx; 
+  }
 
-    // Apply thresholding to all levels except the first (approximate coefficients)
-    for (let i = 1; i < waveletCoeffs.length; i++) {
-        let maxVal = Math.max(...waveletCoeffs[i].map(Math.abs));
-        waveletCoeffs[i] = waveletCoeffs[i].map(v => Math.abs(v) > threshold * maxVal ? v : 0);
-    }
+  // currentSignal now holds the final approximation after 'level' decompositions
+  // waveCoeffs is an array of detail coefficients from each level
 
-    // Reconstruct signal (simulating inverse DWT)
-    let reconstructed = new Array(values.length).fill(0);
-    for (let i = 0; i < waveletCoeffs.length; i++) {
-        let step = Math.pow(2, i);
-        for (let j = 0; j < waveletCoeffs[i].length; j++) {
-            reconstructed[j * step] += waveletCoeffs[i][j];
-        }
-    }
-    return reconstructed;
+  // 2. Threshold the detail coefficients
+  for (let i = 0; i < waveCoeffs.length; i++) {
+    let c = waveCoeffs[i];
+    let maxVal = Math.max(...c.map(Math.abs));
+    let thresh = thresholdPercent * maxVal;
+    waveCoeffs[i] = c.map(val => (Math.abs(val) > thresh ? val : 0));
+  }
+
+  // 3. Reconstruct the signal from thresholded coefficients
+  // We'll do the inverse wavelet transform in reverse order
+  let rebuiltSignal = currentSignal;
+  for (let i = waveCoeffs.length - 1; i >= 0; i--) {
+    // wavelet.idwt merges approximation + detail
+    rebuiltSignal = wavelet.idwt(rebuiltSignal, waveCoeffs[i], waveletName);
+  }
+
+  return rebuiltSignal; 
 }
 
 
 
-        function updateChart(alpha) {
-            if (!data.length) {
-                console.error("Data is not available yet.");
-                return;
-            }
+        // function updateChart(alpha) {
+        //     if (!data.length) {
+        //         console.error("Data is not available yet.");
+        //         return;
+        //     }
             
-            let smoothedData = denoiseSignalDWT(data.map(d => d.value), alpha);
+        //     let smoothedData = denoiseSignalDWT(data.map(d => d.value), alpha);
 
-            // Remove first and last 200 data points
+        //     // Remove first and last 200 data points
+        //     let trimmedData = data.slice(200, data.length - 200);
+        //     let trimmedSmoothedValues = smoothedData.slice(200, smoothedData.length - 200);
+        //     // let trimmedSmoothedData = smoothedData.slice(200, smoothedData.length - 200);
+        //     let trimmedDates = data.slice(200, data.length - 200);
+
+        
+        function updateChart(alpha) {
+          // Perform wavelet-based denoising
+          let smoothedData = denoiseSignalDWT(data.map(d => d.value), 'db6', 5, alpha);
+
+          // Then remove edge points, etc.
             let trimmedData = data.slice(200, data.length - 200);
             let trimmedSmoothedValues = smoothedData.slice(200, smoothedData.length - 200);
             // let trimmedSmoothedData = smoothedData.slice(200, smoothedData.length - 200);
             let trimmedDates = data.slice(200, data.length - 200);
 
+  
             let traceOriginal = {
                 x: trimmedDates.map(d => d.date),
                 y: trimmedDates.map(d => d.value),
