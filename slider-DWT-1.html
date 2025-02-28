@@ -80,7 +80,7 @@ function denoiseSignalDWT(values, waveletName, threshold) {
   // 2. Decompose the signal into approximation & detail coefficients
   // 'level' controls how many times decomposition is applied
   // e.g., level = 5
-      const { approx, details } = wdt.dwt(values, waveletName);
+      const { approx, details } = wt.dwt(values, waveletName);
   // 3. Threshold the detail coefficients
   // We do a "hard" threshold: zero out small values
   details.forEach((detailArr) => {
