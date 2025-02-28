@@ -11,8 +11,8 @@
     <h1>Interactive Simple Exponential Smoothing (SES) Plot</h1>
 
     <div id="slider-container">
-        <input type="range" id="alpha-slider" min="0.01" max="1" step="0.01" value="0.5">
-        <span id="alpha-value">Smoothing Factor: 0.5</span>
+        <input type="range" id="alpha-slider" min="1" max="100" step="1" value="1">
+        <span id="alpha-value">Smoothing Factor: 1</span>
     </div>
 
     <div id="chart-container">
@@ -39,6 +39,7 @@
         });
 
         function simpleExponentialSmoothing(values, alpha) {
+            alpha = 1/alpha
             let smoothed = new Array(values.length).fill(null);
             smoothed[0] = values[0];
             for (let i = 1; i < values.length; i++) {
@@ -69,7 +70,7 @@
                 x: trimmedData.map(d => d.date),
                 y: trimmedSmoothedValues,
                 mode: "lines",
-                name: `SES (Alpha: ${alpha.toFixed(2)})`,
+                name: `SES (Alpha: ${Math.round(alpha)})`,
                 line: { color: "blue" }
             };
 
@@ -85,7 +86,7 @@
 
         d3.select("#alpha-slider").on("input", function() {
             let alpha = +this.value;
-            d3.select("#alpha-value").text(`Smoothing Factor: ${alpha.toFixed(2)}`);
+            d3.select("#alpha-value").text(`Smoothing Factor: ${Math.round(alpha)}`);
             updateChart(alpha);
         });
     </script>
