@@ -56,37 +56,27 @@
             console.error("Error loading data.json:", error);
         });
 
-        // function denoiseSignalDWT(values, waveletName = 'db6', level = 5, thresholdPercent = 0.2) {
-        //   // 1. Multi-level DWT in one step
-        //   let {approx, details} = wavelet.mdwt(values, waveletName, level);
+function denoiseSignalDWT(values, waveletName, level, threshold) {
+// // Single Level
+  // // decomposit the signal
+  //   let [approx, detail] = wt.dwt(values, waveletName);
+//   // threshold detail
+//   let maxVal = Math.max(...detail.map(Math.abs));
+//   let t = threshold * maxVal;
+//   for (let i = 0; i < detail.length; i++) {
+//     if (Math.abs(detail[i]) < t) {
+//       detail[i] = 0;
+//     }
+//   }
+//   // Reconstruct the signal
+//   const reconstructed = wt.idwt(approx, detail, waveletName);
 
-        //   // 2. Threshold detail coefficients
-        //       details.forEach((detailLevel, idx) => {
-        //         let maxVal = Math.max(...detailLevel.map(Math.abs));
-        //         let thresh = thresholdPercent * maxVal;
-        //         // Zero out small detail coefficients
-        //         details[idx] = detailLevel.map(val => (Math.abs(val) > thresh ? val : 0));
-        //       });
 
-        //   // 3. Reconstruct the signal
-        //   let reconstructed = wavelet.midwt(approx, details, waveletName, level);
-        //   return reconstructed;
-        //     }
+// Multi Level
+// decomposit the signal
+    let [approx, detail] = wt.wavedec(values, waveletName, level);
 
-    // waveletName = 'db6', level = 5, threshold = alpha (0 <= alpha <= ?)
-function denoiseSignalDWT(values, waveletName, threshold) {
-  // 1. Create wavelet transform instance
-  // DiscreteWavelets is exposed by the UMD build: 
-  // 2. Decompose the signal into approximation & detail coefficients
-  // 'level' controls how many times decomposition is applied
-  // e.g., level = 5
-      // const { approx, details } = wt.dwt(values, waveletName);
-  // 3. Threshold the detail coefficients
-  // We do a "hard" threshold: zero out small values
-  // Single-level transform => returns [approx, detail]
-  let [approx, detail] = wt.dwt(values, waveletName);
-
-  // 1) threshold detail
+  // threshold detail
   let maxVal = Math.max(...detail.map(Math.abs));
   let t = threshold * maxVal;
   for (let i = 0; i < detail.length; i++) {
@@ -94,8 +84,9 @@ function denoiseSignalDWT(values, waveletName, threshold) {
       detail[i] = 0;
     }
   }
-  // 4. Reconstruct the signal
-  const reconstructed = wt.idwt(approx, detail, waveletName);
+  // Reconstruct the signal
+  const reconstructed = wt.waverec([approx, detail], waveletName);
+    
   return reconstructed; // returns an array of numeric values
 }
 
@@ -108,11 +99,11 @@ function updateChart(alpha) {
   // 1. Perform wavelet-based denoising
   // e.g., waveletName = 'db6' and level = 5
   const waveletName = "db6";
-  // const level = 5;
+  const level = 5;
   const smoothedData = denoiseSignalDWT(
     data.map(d => d.value),
     waveletName,
-    // level,
+    level,
     alpha
   );
   // 2. Trim edges (like in Python)
