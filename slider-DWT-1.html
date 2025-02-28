@@ -54,13 +54,17 @@
             let coeffs = numeric.clone(values); // Clone values to prevent modification of the original
             let maxVal = Math.max(...values.map(Math.abs));
 
+            let smoothed = values.slice(); // Initialize with original values
+
             // Simulating thresholding similar to Python
             let thresholded = coeffs.map((v, i) => Math.abs(v) > threshold * maxVal ? v : 0);
 
             // Simulated inverse wavelet reconstruction (since JS lacks a direct function for this)
             let reconstructed = numeric.clone(thresholded); // In Python, pywt.waverec() is used
-            return reconstructed.map((val, i) => ({ date: data[i].date, value: val })); // Maintain date-value structure
-}
+            // return reconstructed.map((val, i) => ({ date: data[i].date, value: val })); // Maintain date-value structure
+            smoothed = reconstructed
+            return smoothed
+        }
 
 
         function updateChart(alpha) {
