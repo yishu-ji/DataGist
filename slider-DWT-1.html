@@ -22,7 +22,7 @@
     <h3>Interactive Approximated Plot - Discrete Wavelet Transform (DWT)</h3>
 
     <div id="slider-container">
-        <input type="range" id="slider-DWT-1" min="0" max="1" step="0.05" value="0">
+        <input type="range" id="slider-DWT-1" min="0.05" max="1" step="0.05" value="0.05">
         <span id="alpha-value">Parameter: 0.2</span>
     </div>
 
@@ -44,16 +44,20 @@
                 return;
             }
 
-            updateChart(0.2); // Initial plot
+            updateChart(0.5); // Initial plot
         }).catch(function(error) {
             console.error("Error loading data.json:", error);
         });
 
         function denoiseSignalDWT(values, threshold) {
-            let coeffs = numeric.clone(values); // Simulating wavelet decomposition
+            let coeffs = values.slice(); // Clone values instead of using numeric.js (for safety)
             let maxVal = Math.max(...values.map(Math.abs));
             let thresholded = coeffs.map(v => Math.abs(v) > threshold * maxVal ? v : 0);
-            return thresholded;
+            return values.map((d, i) => ({
+                date: data[i].date, // Keep the original date structure
+                value: thresholded[i] // Apply thresholding to values
+        }));
+
         }
 
         function updateChart(alpha) {
@@ -65,8 +69,8 @@
             let smoothedData = denoiseSignalDWT(data.map(d => d.value), alpha);
 
             // Remove first and last 200 data points
-            let trimmedData = data.slice(200, data.length - 200);
-            let trimmedSmoothedValues = smoothedData.slice(200, smoothedData.length - 200);
+            // let trimmedData = data.slice(200, data.length - 200);
+            let trimmedSmoothedData = smoothedData.slice(200, smoothedData.length - 200);
             let trimmedDates = data.slice(200, data.length - 200);
 
             let traceOriginal = {
@@ -79,7 +83,8 @@
 
             let traceDWT = {
                 x: trimmedData.map(d => d.date),
-                y: trimmedSmoothedValues,
+                // y: trimmedSmoothedValues,
+                y: trimmedSmoothedData.map(d => d.value),
                 mode: "lines",
                 name: `Approximated Data (Threshold: ${alpha})`,
                 line: { color: "blue" }
