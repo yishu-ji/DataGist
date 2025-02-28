@@ -72,8 +72,9 @@
             let smoothedData = denoiseSignalDWT(data.map(d => d.value), alpha);
 
             // Remove first and last 200 data points
-            // let trimmedData = data.slice(200, data.length - 200);
-            let trimmedSmoothedData = smoothedData.slice(200, smoothedData.length - 200);
+            let trimmedData = data.slice(200, data.length - 200);
+            let trimmedSmoothedValues = smoothedData.slice(200, smoothedData.length - 200);
+            // let trimmedSmoothedData = smoothedData.slice(200, smoothedData.length - 200);
             let trimmedDates = data.slice(200, data.length - 200);
 
             let traceOriginal = {
@@ -86,8 +87,7 @@
 
             let traceDWT = {
                 x: trimmedData.map(d => d.date),
-                // y: trimmedSmoothedValues,
-                y: trimmedSmoothedData.map(d => d.value),
+                y: trimmedSmoothedValues,
                 mode: "lines",
                 name: `Approximated Data (Threshold: ${alpha})`,
                 line: { color: "blue" }
