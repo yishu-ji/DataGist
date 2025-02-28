@@ -71,16 +71,21 @@
 
     // waveletName = 'db6', level = 5, threshold = alpha (0 <= alpha <= ?)
 function denoiseSignalDWT(values, waveletName, level, threshold) {
-  // 1. Decompose signal into approximation + detail coefficients
-  let decomposition = dwt(values, waveletName, level);
-  // decomposition.approx -> final approximation
-  // decomposition.details -> array of detail coefficients at each level
+  // 1. Create wavelet transform instance
+  // DiscreteWavelets is exposed by the UMD build: 
+  // <script src="https://cdn.jsdelivr.net/npm/discrete-wavelets@5/dist/discrete-wavelets.umd.min.js"></script>
+  const wt = new DiscreteWavelets.WT(waveletName);
 
-  // 2. Threshold each detail array
-  decomposition.details.forEach((detailArr) => {
-    // Hard threshold: zero out small coefficients
-    let maxVal = Math.max(...detailArr.map(Math.abs));
-    let t = threshold * maxVal; // threshold scaled by max coefficient
+  // 2. Decompose the signal into approximation & detail coefficients
+  // 'level' controls how many times decomposition is applied
+  // e.g., level = 5
+  const { approx, details } = wt.dwt(values, level);
+
+  // 3. Threshold the detail coefficients
+  // We do a "hard" threshold: zero out small values
+  details.forEach((detailArr) => {
+    const maxVal = Math.max(...detailArr.map(Math.abs));
+    const t = threshold * maxVal; // threshold scaled by max coefficient
     for (let i = 0; i < detailArr.length; i++) {
       if (Math.abs(detailArr[i]) < t) {
         detailArr[i] = 0;
@@ -88,9 +93,58 @@ function denoiseSignalDWT(values, waveletName, level, threshold) {
     }
   });
 
-  // 3. Reconstruct the signal from thresholded approximation + details
-  let reconstructed = idwt(decomposition.approx, decomposition.details, waveletName, level);
-  return reconstructed; // returns array of numeric values
+  // 4. Reconstruct the signal
+  const reconstructed = wt.idwt(approx, details);
+  return reconstructed; // returns an array of numeric values
+}
+
+        function updateChart(alpha) {
+  if (!data.length) {
+    console.error("Data is not available yet.");
+    return;
+  }
+
+  // 1. Perform wavelet-based denoising
+  // e.g., waveletName = 'db6' and level = 5
+  const waveletName = "db6";
+  const level = 5;
+  const smoothedData = denoiseSignalDWT(
+    data.map(d => d.value),
+    waveletName,
+    level,
+    alpha
+  );
+
+  // 2. Trim edges (like in Python)
+  const trimmedDates = data.slice(200, data.length - 200);
+  const trimmedValues = smoothedData.slice(200, smoothedData.length - 200);
+
+  // 3. Build Plotly traces
+  const traceOriginal = {
+    x: trimmedDates.map(d => d.date),
+    y: trimmedDates.map(d => d.value),
+    mode: "lines",
+    name: "Original Data",
+    line: { color: "lightgray" }
+  };
+
+  const traceDWT = {
+    x: trimmedDates.map(d => d.date),
+    y: trimmedValues,
+    mode: "lines",
+    name: `DWT (Threshold: ${alpha})`,
+    line: { color: "blue" }
+  };
+
+  // 4. Plot with Plotly
+  Plotly.newPlot("chart", [traceOriginal, traceDWT], {
+    title: "Discrete Wavelet Transform Denoising",
+    xaxis: { title: "Date", tickformat: "%Y-%m" },
+    yaxis: { title: "Value" },
+    width: 900,
+    height: 500,
+    responsive: true
+  });
 }
 
 
