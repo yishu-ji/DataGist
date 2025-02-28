@@ -47,7 +47,7 @@
 
         function simpleExponentialSmoothing(values, alpha) {
             alpha = 1/alpha
-            let smoothed = new Array(values.length).fill(null);
+            let smoothed = values.slice(); // Initialize with original values
             smoothed[0] = values[0];
             for (let i = 1; i < values.length; i++) {
                 smoothed[i] = alpha * values[i] + (1 - alpha) * smoothed[i - 1];
@@ -64,7 +64,9 @@
             let smoothedData = simpleExponentialSmoothing(data.map(d => d.value), alpha);
 
             // Remove first and last 200 data points
-            let trimmedData = smoothedData.slice(200, smoothedData.length - 200);
+            let trimmedData = data.slice(200, data.length - 200); // Ensure x and y values match
+            let trimmedSmoothedValues = smoothedData.slice(200, smoothedData.length - 200);
+
             let trimmedDates = data.slice(200, data.length - 200);
 
             let traceOriginal = {
@@ -77,7 +79,7 @@
 
             let traceSES = {
                 x: trimmedData.map(d => d.date),
-                y: trimmedData.map(d => d.value),
+                y: trimmedSmoothedValues,
                 mode: "lines",
                 name: `Approximated Data (Parameter: ${alpha})`,
                 line: { color: "blue" }
