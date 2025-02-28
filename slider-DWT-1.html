@@ -22,7 +22,7 @@
     <h3>Interactive Approximated Plot - Discrete Wavelet Transform (DWT)</h3>
 
     <div id="slider-container">
-        <input type="range" id="slider-DWT-1" min="0" max="1" step="0.05" value="0.2">
+        <input type="range" id="slider-DWT-1" min="0" max="1" step="0.05" value="0">
         <span id="alpha-value">Parameter: 0.2</span>
     </div>
 
@@ -96,8 +96,8 @@
         }
 
         function sendSliderValueToQualtrics(fieldName, alpha) {
-            console.log(`Sending to Qualtrics: ${fieldName} = ${Math.round(alpha)}`);
-            window.parent.postMessage({ fieldName: fieldName, value: Math.round(alpha) }, "*");
+            console.log(`Sending to Qualtrics: ${fieldName} = ${alpha.toFixed(2)}`);
+            window.parent.postMessage({ fieldName: fieldName, value: alpha.toFixed(2) }, "*");
         }
 
         function initializeSlider(sliderId, fieldName) {
