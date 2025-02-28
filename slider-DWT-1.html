@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interactive DWT Plot</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script>
-    <script>
+<!--     <script>
         console.log("Numeric.js loaded:", typeof numeric !== "undefined");
-    </script>
+    </script> -->
     <script src="https://d3js.org/d3.v6.min.js"></script>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <!--     <script src="https://symmetronic.github.io/discrete-wavelets/build/discrete-wavelets.min.js"></script> -->
@@ -37,7 +37,6 @@
     </div>
 
     <script>
-        console.log(wt.Modes.modes);
 // expected output: Array ['zero', 'constant', 'symmetric', 'periodic', 'smooth', 'reflect', 'antisymmetric']
         let data = []; // Global variable to store data
 
@@ -75,14 +74,13 @@
         //     }
 
     // waveletName = 'db6', level = 5, threshold = alpha (0 <= alpha <= ?)
-function denoiseSignalDWT(values, waveletName, level, threshold) {
+function denoiseSignalDWT(values, waveletName, threshold) {
   // 1. Create wavelet transform instance
   // DiscreteWavelets is exposed by the UMD build: 
-    const wt = new DiscreteWavelets.WT(waveletName);
   // 2. Decompose the signal into approximation & detail coefficients
   // 'level' controls how many times decomposition is applied
   // e.g., level = 5
-      const { approx, details } = wt.dwt(values, level);
+      const { approx, details } = wdt.dwt(values, waveletName);
   // 3. Threshold the detail coefficients
   // We do a "hard" threshold: zero out small values
   details.forEach((detailArr) => {
@@ -95,7 +93,7 @@ function denoiseSignalDWT(values, waveletName, level, threshold) {
     }
   });
   // 4. Reconstruct the signal
-  const reconstructed = wt.idwt(approx, details);
+  const reconstructed = wt.idwt(approx, details, waveletName);
   return reconstructed; // returns an array of numeric values
 }
 
@@ -108,7 +106,7 @@ function updateChart(alpha) {
   // 1. Perform wavelet-based denoising
   // e.g., waveletName = 'db6' and level = 5
   const waveletName = "db6";
-  const level = 5;
+  // const level = 5;
   const smoothedData = denoiseSignalDWT(
     data.map(d => d.value),
     waveletName,
