@@ -57,9 +57,10 @@
         });
 
 function denoiseSignalDWT(values, waveletName, threshold) {
-// // Single Level
-  // // decomposit the signal
-  //   let [approx, detail] = wt.dwt(values, waveletName);
+// // Multi Level
+// // decomposit the signal
+//     let [approx, detail] = wt.wavedec(values, waveletName);
+
 //   // threshold detail
 //   let maxVal = Math.max(...detail.map(Math.abs));
 //   let t = threshold * maxVal;
@@ -69,24 +70,24 @@ function denoiseSignalDWT(values, waveletName, threshold) {
 //     }
 //   }
 //   // Reconstruct the signal
-//   const reconstructed = wt.idwt(approx, detail, waveletName);
+//   const reconstructed = wt.waverec([approx, detail], waveletName);
 
+let coeffs = wt.wavedec(values, waveletName);
 
-// Multi Level
-// decomposit the signal
-    let [approx, detail] = wt.wavedec(values, waveletName);
-
-  // threshold detail
-  let maxVal = Math.max(...detail.map(Math.abs));
-  let t = threshold * maxVal;
-  for (let i = 0; i < detail.length; i++) {
-    if (Math.abs(detail[i]) < t) {
-      detail[i] = 0;
+  // Threshold detail arrays (skip coeffs[0] which is the approximation)
+  for (let i = 1; i < coeffs.length; i++) {
+    let detail = coeffs[i];
+    let maxVal = Math.max(...detail.map(Math.abs));
+    let t = threshold * maxVal;
+    for (let j = 0; j < detail.length; j++) {
+      if (Math.abs(detail[j]) < t) {
+        detail[j] = 0;
+      }
     }
   }
-  // Reconstruct the signal
-  const reconstructed = wt.waverec([approx, detail], waveletName);
-    
+
+  // Reconstruct the denoised signal from updated coeffs
+  let reconstructed = wt.waverec(coeffs, waveletName);
   return reconstructed; // returns an array of numeric values
 }
 
