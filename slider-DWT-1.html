@@ -110,7 +110,7 @@ function updateChart(alpha) {
   const smoothedData = denoiseSignalDWT(
     data.map(d => d.value),
     waveletName,
-    level,
+    // level,
     alpha
   );
   // 2. Trim edges (like in Python)
