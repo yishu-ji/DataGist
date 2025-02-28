@@ -80,18 +80,19 @@ function denoiseSignalDWT(values, waveletName, threshold) {
   // 2. Decompose the signal into approximation & detail coefficients
   // 'level' controls how many times decomposition is applied
   // e.g., level = 5
-      const { approx, details } = wt.dwt(values, waveletName);
+      // const { approx, details } = wt.dwt(values, waveletName);
   // 3. Threshold the detail coefficients
   // We do a "hard" threshold: zero out small values
-  details.forEach((detailArr) => {
-    const maxVal = Math.max(...detailArr.map(Math.abs));
-    const t = threshold * maxVal; // threshold scaled by max coefficient
-    for (let i = 0; i < detailArr.length; i++) {
-      if (Math.abs(detailArr[i]) < t) {
-        detailArr[i] = 0;
-      }
+  // Single-level transform => returns [approx, detail]
+  let [approx, detail] = wt.dwt(values, waveletName);
+
+  // 1) threshold detail
+  let maxVal = Math.max(...detail.map(Math.abs));
+  let t = threshold * maxVal;
+  for (let i = 0; i < detail.length; i++) {
+    if (Math.abs(detail[i]) < t) {
+      detail[i] = 0;
     }
-  });
   // 4. Reconstruct the signal
   const reconstructed = wt.idwt(approx, details, waveletName);
   return reconstructed; // returns an array of numeric values
