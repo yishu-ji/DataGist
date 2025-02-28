@@ -93,6 +93,7 @@ function denoiseSignalDWT(values, waveletName, threshold) {
     if (Math.abs(detail[i]) < t) {
       detail[i] = 0;
     }
+  }
   // 4. Reconstruct the signal
   const reconstructed = wt.idwt(approx, details, waveletName);
   return reconstructed; // returns an array of numeric values
