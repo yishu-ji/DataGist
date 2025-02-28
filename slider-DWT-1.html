@@ -99,7 +99,7 @@ function updateChart(alpha) {
   // 1. Perform wavelet-based denoising
   // e.g., waveletName = 'db6' and level = 5
   const waveletName = "db6";
-  const level = 5;
+  const level = "5";
   const smoothedData = denoiseSignalDWT(
     data.map(d => d.value),
     waveletName,
