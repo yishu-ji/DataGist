@@ -28,7 +28,7 @@
     <h3>Interactive Approximated Plot - Discrete Wavelet Transform (DWT)</h3>
 
     <div id="slider-container">
-        <input type="range" id="slider-DWT-1" min="0.05" max="10" step="0.1" value="0.05">
+        <input type="range" id="slider-DWT-1" min="0" max="1" step="0.01" value="0">
         <span id="alpha-value">Parameter: 0.2</span>
     </div>
 
@@ -51,7 +51,7 @@
                 return;
             }
 
-            updateChart(0.5); // Initial plot
+            updateChart(0); // Initial plot
         }).catch(function(error) {
             console.error("Error loading data.json:", error);
         });
