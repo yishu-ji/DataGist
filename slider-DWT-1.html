@@ -94,6 +94,7 @@ function denoiseSignalDWT(values, waveletName, level, threshold) {
   return reconstructed; // returns an array of numeric values
 }
 
+
 function updateChart(alpha) {
   if (!data.length) {
     console.error("Data is not available yet.");
@@ -180,57 +181,57 @@ function updateChart(alpha) {
         //     });
         // }
 
-function updateChart(alpha) {
-  // 1. Ensure data is loaded
-  if (!data.length) {
-    console.error("Data is not available yet.");
-    return;
-  }
+// function updateChart(alpha) {
+//   // 1. Ensure data is loaded
+//   if (!data.length) {
+//     console.error("Data is not available yet.");
+//     return;
+//   }
   
-  // 2. Perform DWT-based denoising
-  let waveletName = "db6";
-  let level = 5;
-  let smoothedData = denoiseSignalDWT(data.map(d => d.value), waveletName, level, alpha);
+//   // 2. Perform DWT-based denoising
+//   let waveletName = "db6";
+//   let level = 5;
+//   let smoothedData = denoiseSignalDWT(data.map(d => d.value), waveletName, level, alpha);
 
-  // 3. Slice off edges (like Python)
-  let trimmedDates = data.slice(200, data.length - 200);
-  let trimmedValues = smoothedData.slice(200, smoothedData.length - 200);
+//   // 3. Slice off edges (like Python)
+//   let trimmedDates = data.slice(200, data.length - 200);
+//   let trimmedValues = smoothedData.slice(200, smoothedData.length - 200);
 
-  // 4. Build traces
-  let traceOriginal = {
-    x: trimmedDates.map(d => d.date),
-    y: trimmedDates.map(d => d.value),
-    mode: "lines",
-    name: "Original Data",
-    line: { color: "lightgray" }
-  };
+//   // 4. Build traces
+//   let traceOriginal = {
+//     x: trimmedDates.map(d => d.date),
+//     y: trimmedDates.map(d => d.value),
+//     mode: "lines",
+//     name: "Original Data",
+//     line: { color: "lightgray" }
+//   };
 
-  let traceDWT = {
-    x: trimmedDates.map(d => d.date),
-    y: trimmedValues,
-    mode: "lines",
-    name: `Approximated Data (Threshold: ${alpha})`,
-    line: { color: "blue" }
-  };
+//   let traceDWT = {
+//     x: trimmedDates.map(d => d.date),
+//     y: trimmedValues,
+//     mode: "lines",
+//     name: `Approximated Data (Threshold: ${alpha})`,
+//     line: { color: "blue" }
+//   };
 
-  // 5. Plot
-  Plotly.newPlot("chart", [traceOriginal, traceDWT], {
-    title: "Discrete Wavelet Transform Denoising",
-    xaxis: { title: "Date", tickformat: "%Y-%m" },
-    yaxis: { title: "Value" },
-    width: 900,
-    height: 500,
-    responsive: true
-  });
-}
+//   // 5. Plot
+//   Plotly.newPlot("chart", [traceOriginal, traceDWT], {
+//     title: "Discrete Wavelet Transform Denoising",
+//     xaxis: { title: "Date", tickformat: "%Y-%m" },
+//     yaxis: { title: "Value" },
+//     width: 900,
+//     height: 500,
+//     responsive: true
+//   });
+// }
 
 
-        function sendSliderValueToQualtrics(fieldName, alpha) {
+function sendSliderValueToQualtrics(fieldName, alpha) {
             console.log(`Sending to Qualtrics: ${fieldName} = ${alpha.toFixed(2)}`);
             window.parent.postMessage({ fieldName: fieldName, value: alpha.toFixed(2) }, "*");
         }
 
-        function initializeSlider(sliderId, fieldName) {
+function initializeSlider(sliderId, fieldName) {
             d3.select(`#${sliderId}`).on("input", function() {
                 let alpha = +this.value;
                 d3.select(`#alpha-value`).text(`Parameter: ${alpha.toFixed(2)}`);
