@@ -37,7 +37,8 @@
     </div>
 
     <script>
-        
+        console.log(wt.Modes.modes);
+// expected output: Array ['zero', 'constant', 'symmetric', 'periodic', 'smooth', 'reflect', 'antisymmetric']
         let data = []; // Global variable to store data
 
         d3.json("https://yishu-ji.github.io/DataGist/data.json").then(function(loadedData) {
