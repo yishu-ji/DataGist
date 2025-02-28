@@ -73,14 +73,11 @@
 function denoiseSignalDWT(values, waveletName, level, threshold) {
   // 1. Create wavelet transform instance
   // DiscreteWavelets is exposed by the UMD build: 
-  // <script src="https://cdn.jsdelivr.net/npm/discrete-wavelets@5/dist/discrete-wavelets.umd.min.js"></script>
-  const wt = new DiscreteWavelets.WT(waveletName);
-
+    const wt = new DiscreteWavelets.WT(waveletName);
   // 2. Decompose the signal into approximation & detail coefficients
   // 'level' controls how many times decomposition is applied
   // e.g., level = 5
-  const { approx, details } = wt.dwt(values, level);
-
+      const { approx, details } = wt.dwt(values, level);
   // 3. Threshold the detail coefficients
   // We do a "hard" threshold: zero out small values
   details.forEach((detailArr) => {
@@ -92,18 +89,16 @@ function denoiseSignalDWT(values, waveletName, level, threshold) {
       }
     }
   });
-
   // 4. Reconstruct the signal
   const reconstructed = wt.idwt(approx, details);
   return reconstructed; // returns an array of numeric values
 }
 
-        function updateChart(alpha) {
+function updateChart(alpha) {
   if (!data.length) {
     console.error("Data is not available yet.");
     return;
   }
-
   // 1. Perform wavelet-based denoising
   // e.g., waveletName = 'db6' and level = 5
   const waveletName = "db6";
@@ -114,11 +109,9 @@ function denoiseSignalDWT(values, waveletName, level, threshold) {
     level,
     alpha
   );
-
   // 2. Trim edges (like in Python)
   const trimmedDates = data.slice(200, data.length - 200);
   const trimmedValues = smoothedData.slice(200, smoothedData.length - 200);
-
   // 3. Build Plotly traces
   const traceOriginal = {
     x: trimmedDates.map(d => d.date),
