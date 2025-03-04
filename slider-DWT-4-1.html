@@ -129,7 +129,7 @@ function updateChart(alpha) {
   Plotly.newPlot("chart", [traceOriginal, traceDWT], {
     title: "",
     xaxis: { title: "Date", tickformat: "%Y-%m" },
-    yaxis: { title: "Value" },
+    yaxis: { title: "Value", range: [42.5, 45] },
     width: 900,
     height: 500,
     responsive: true
