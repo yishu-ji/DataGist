@@ -1,1 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive CMA Plot</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        #chart-container { width: 90%; height: 500px; margin: auto; }
+        #slider-container { width: 600px; margin: 20px auto; }
+        #slider-CMA-1 { width: 100%; }
+    </style>
+</head>
+<body>
+
+<!--     <h3>Interactive Approximated Plot - Algorithm A</h3> -->
+    <h3>Interactive Approximated Plot</h3>
+    <div id="slider-container">
+        <input type="range" id="slider-CMA-1" min="1" max="200" step="1" value="1">
+        <span id="alpha-value">Parameter: 1</span>
+    </div>
+
+    <div id="chart-container">
+        <div id="chart"></div>
+    </div>
+
+    <script>
+        let data = []; // Global variable to store data
+
+        d3.json("https://yishu-ji.github.io/DataGist/data-2.json").then(function(loadedData) {
+            console.log("Data loaded successfully:", loadedData);
+            
+            data = loadedData; // Store data globally
+            data.forEach(d => d.date = new Date(d.date));
+
+            if (!data || data.length === 0) {
+                console.error("Data failed to load or is empty.");
+                return;
+            }
+
+            updateChart(1); // Initial plot
+        }).catch(function(error) {
+            console.error("Error loading data.json:", error);
+        });
+
+        function computeCMA(alpha) {
+            let smoothed = [];
+            let halfalpha = Math.floor(alpha / 2);
+            for (let i = 0; i < data.length; i++) {
+                let start = Math.max(0, i - halfalpha);
+                let end = Math.min(data.length, i + halfalpha + 1);
+                let subset = data.slice(start, end);
+                let avg = d3.mean(subset, d => d.value);
+                smoothed.push({ date: data[i].date, value: avg });
+            }
+            return smoothed;
+        }
+
+        function updateChart(alpha) {
+            if (!data.length) {
+                console.error("Data is not available yet.");
+                return;
+            }
+            
+            let smoothedData = computeCMA(alpha);
+
+            // Remove first and last 200 data points
+            let trimmedData = smoothedData.slice(200, smoothedData.length - 200);
+            let trimmedDates = data.slice(200, data.length - 200);
+
+            let traceOriginal = {
+                x: trimmedDates.map(d => d.date),
+                y: trimmedDates.map(d => d.value),
+                mode: "lines",
+                name: "Original Data",
+                line: { color: "lightgray" }
+            };
+
+            let traceCMA = {
+                x: trimmedData.map(d => d.date),
+                y: trimmedData.map(d => d.value),
+                mode: "lines",
+                name: `Approximated Data (Parameter: ${alpha})`,
+                line: { color: "blue" }
+            };
+
+            Plotly.newPlot("chart", [traceOriginal, traceCMA], {
+                title: " ",
+                xaxis: { title: "Date", tickformat: "%Y-%m" },
+                yaxis: { title: "Value" },
+                width: 900,  // Custom width
+                height: 500, // Custom height
+                responsive: true  // Enable auto-resizing
+            });
+        }
+
+        function sendSliderValueToQualtrics(fieldName, alpha) {
+            console.log(`Sending to Qualtrics: ${fieldName} = ${Math.round(alpha)}`);
+            window.parent.postMessage({ fieldName: fieldName, value: Math.round(alpha) }, "*");
+        }
+
+        function initializeSlider(sliderId, fieldName) {
+            d3.select(`#${sliderId}`).on("input", function() {
+                let alpha = +this.value;
+                d3.select(`#alpha-value`).text(`Parameter: ${Math.round(alpha)}`);
+                updateChart(alpha);
+                clearTimeout(window[sliderId + "_timeout"]);
+                window[sliderId + "_timeout"] = setTimeout(() => {
+                    sendSliderValueToQualtrics(fieldName, alpha);
+                }, 1000);
+            });
+
+            window.addEventListener("beforeunload", function() {
+                let finalAlpha = +d3.select(`#${sliderId}`).property("value");
+                sendSliderValueToQualtrics(fieldName, finalAlpha);
+            });
+        }
+
+        initializeSlider("slider-CMA-1", "parameter-CMA-1");
+    </script>
+</body>
+</html>
 
