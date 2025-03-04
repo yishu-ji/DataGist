@@ -17,7 +17,7 @@
         body { font-family: Arial, sans-serif; text-align: center; }
         #chart-container { width: 90%; height: 500px; margin: auto; }
         #slider-container { width: 600px; margin: 20px auto; }
-        #slider-CMA-1 { width: 100%; }
+        #slider-DWT-1-1 { width: 100%; }
     </style>
     
 </head>
@@ -27,7 +27,7 @@
     <h3>Interactive Approximated Plot</h3>
 
     <div id="slider-container">
-        <input type="range" id="slider-DWT-1" min="0" max="1" step="0.01" value="0">
+        <input type="range" id="slider-DWT-1-1" min="0" max="1" step="0.01" value="0">
         <span id="alpha-value">Parameter: 0</span>
     </div>
 
@@ -38,7 +38,7 @@
     <script>
         let data = []; // Global variable to store data
 
-        d3.json("https://yishu-ji.github.io/DataGist/data.json").then(function(loadedData) {
+        d3.json("https://yishu-ji.github.io/DataGist/data-1.json").then(function(loadedData) {
             console.log("Data loaded successfully:", loadedData);
             
             data = loadedData; // Store data globally
@@ -243,7 +243,7 @@ function initializeSlider(sliderId, fieldName) {
             });
         }
 
-        initializeSlider("slider-DWT-1", "parameter-DWT-1");
+        initializeSlider("slider-DWT-1-1", "parameter-DWT-1-1");
     </script>
 </body>
 </html>
