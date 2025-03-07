@@ -30,7 +30,7 @@
     <script>
         let data = []; // Global variable to store data
 
-        d3.json("https://yishu-ji.github.io/DataGist/data.json").then(function(loadedData) {
+        d3.json("https://yishu-ji.github.io/DataGist/data-1.json").then(function(loadedData) {
             console.log("Data loaded successfully:", loadedData);
             
             data = loadedData; // Store data globally
@@ -49,19 +49,19 @@
         function computeCMA(alpha) {
             let smoothed = [];
             let halfalpha = Math.floor(alpha / 2);
-            for (let i = 0; i < data.length; i++) {
+            for (let i = 0; i < .length; i++) {
                 let start = Math.max(0, i - halfalpha);
-                let end = Math.min(data.length, i + halfalpha + 1);
-                let subset = data.slice(start, end);
+                let end = Math.min(.length, i + halfalpha + 1);
+                let subset = .slice(start, end);
                 let avg = d3.mean(subset, d => d.value);
-                smoothed.push({ date: data[i].date, value: avg });
+                smoothed.push({ date: [i].date, value: avg });
             }
             return smoothed;
         }
 
         function updateChart(alpha) {
-            if (!data.length) {
-                console.error("Data is not available yet.");
+            if (!.length) {
+                console.error(" is not available yet.");
                 return;
             }
             
