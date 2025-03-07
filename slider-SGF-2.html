@@ -35,7 +35,7 @@
     <script>
         let data = []; // Global variable to store data
 
-        d3.json("https://yishu-ji.github.io/DataGist/data.json").then(function(loadedData) {
+        d3.json("https://yishu-ji.github.io/DataGist/data-1.json").then(function(loadedData) {
                 console.log("Data loaded successfully:", loadedData);
                 data = loadedData; // Store data globally
                 data.forEach(d => d.date = new Date(d.date));
